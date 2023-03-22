@@ -3,7 +3,13 @@ const $$ = document.querySelectorAll.bind(document)
 const playlist = document.querySelector('.playlist')
 const playBtn = $('.btn-toggle-play')
 const player = $('.player')
-const progress =$('.progress')
+const progress = $('.progress')
+const heading = $('header h2')
+const cdThumb = $('.cd-thumb')
+const audio = $('#audio')
+const next = $('.btn-next')
+const prev = $('.btn-prev')
+
 
 const app = {
     currenIndex: 0,
@@ -98,6 +104,15 @@ const app = {
         // xu ly phong to thu nho
         const cdWidth = cd.offsetWidth
 
+        const cdAnimate= cdThumb.animate([
+            {transform: 'rotate(360deg)'}
+            ], 
+                {
+                duration: 10000,
+                iterations: Infinity
+                })
+            cdAnimate.pause()
+
         document.onscroll = function () {
             const scrollTop = document.documentElement.scrollTop
             const newcdWidth = cdWidth - scrollTop
@@ -111,38 +126,63 @@ const app = {
         // xu ly khi click phan play
         playBtn.onclick = function () {
             if (_this.isplaying) {
-                _this.isplaying= false
-                audio.pause()
-                player.classList.remove('playing')
+               audio.pause()
             }
             else {
-                _this.isplaying= true
                 audio.play()
-                player.classList.add('playing')
-
             }
         }
+        audio.onplay = function(){
+            _this.isplaying = true
+            audio.play()
+            player.classList.add('playing')
+            cdAnimate.play()
+        }
+        audio.onpause = function(){
+            _this.isplaying = false
+                audio.pause()
+                player.classList.remove('playing')
+                cdAnimate.pause()
+        }
         // xu ly khi bai hat dang chay
-        audio.ontimeupdate = function(){
-            if(audio.duration){
-                const progressPercent = Math.floor(audio.currentTime/ audio.duration *100)
+        audio.ontimeupdate = function () {
+            if (audio.duration) {
+                const progressPercent = Math.floor(audio.currentTime / audio.duration * 100)
                 progress.value = progressPercent
             }
         }
         // xu ly khi bai hat dang chay
-        progress.onchange= function(e){
-            const time = audio.duration /100 * e.target.value
-            audio.currentTime=time
+        progress.onchange = function (e) {
+            const time = audio.duration / 100 * e.target.value
+            audio.currentTime = time
+        }
+        next.onclick=function(){
+            _this.nextSong()
+            audio.play()
+        }
+        prev.onclick=function(){
+            _this.prevSong()
+            audio.play()
         }
     },
     loadSong: function () {
-        const heading = $('header h2')
-        const cdThumb = $('.cd-thumb')
-        const audio = $('#audio')
-
         heading.textContent = this.currentSong.name
         cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`
         audio.src = this.currentSong.path
+    },
+    nextSong: function(){
+        this.currenIndex++
+        if(this.currenIndex>= this.songs.length){
+            this.currenIndex =0
+        }
+        this.loadSong()
+    },
+    prevSong: function(){
+        this.currenIndex--
+        if(this.currenIndex <0){
+            this.currenIndex = this.songs.length -1
+        }
+        this.loadSong()
     },
     start: function () {
         this.defineProperties()
